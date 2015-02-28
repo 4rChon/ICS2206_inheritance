@@ -85,18 +85,16 @@ Path[] query_path(Edge query, Graph G, bool infer)
     Concept superConcept = query.get_super;
     bool isA = query.get_isA;
     
-    subExists = contain_concept(G.conceptList, subConcept);
-    superExists = contain_concept(G.conceptList, superConcept);
+    subExists = G.conceptList.contain_concept(subConcept);
+    superExists = G.conceptList.contain_concept(superConcept);
     
     if(subExists && superExists)
     {
-        
         foreach(e; G.edgeList)                          //iterate over all edges in subconcept
             if(e.get_sub.compare_concept(subConcept)) 
             {
                 if(!infer)
                 {
-                    e.print_edge;
                     Path path = new Path(e.get_sub);
                     pathList = query_rec(e.get_super, superConcept, path, pathList, e.get_isA);
                 }
@@ -104,12 +102,14 @@ Path[] query_path(Edge query, Graph G, bool infer)
                 if(infer)
                 {
                     Path path = new Path(e.get_sub);
-                    pathList ~= query_infer(G, subConcept, superConcept, path, true);
+                    path = query_infer(G, e.get_sub, superConcept, path, true);
+                    if(path.get_head.get_concept.compare_concept(e.get_sub) && path.get_tail.get_concept.compare_concept(superConcept))
+                        pathList ~= path;
                 }
             }
         
         Path[] newPathList;
-        
+            
         foreach(index, p; pathList)
             if(p.get_tail.get_concept.compare_concept(superConcept))
                 newPathList ~= pathList[index];
@@ -121,9 +121,6 @@ Path[] query_path(Edge query, Graph G, bool infer)
 
 Path[] query_rec(Concept currentConcept, Concept finalConcept, Path path, Path[] pathList, bool isA)
 {
-    writeln("current concept: ");
-    currentConcept.print_concept;
-    writeln("\n");
     Concept[] adjTrue = currentConcept.get_adjTrue;
     Concept[] adjFalse = currentConcept.get_adjFalse;
     Concept[] adj = adjTrue ~ adjFalse;
@@ -138,7 +135,6 @@ Path[] query_rec(Concept currentConcept, Concept finalConcept, Path path, Path[]
     if(!isA)
         return pathList;
     
-    writeln("adj.length: ", adjTrue.length + adjFalse.length);
     if(adj.length == 0)
         return pathList;
     
@@ -149,11 +145,6 @@ Path[] query_rec(Concept currentConcept, Concept finalConcept, Path path, Path[]
         
         Path newPath = new Path(path);
         newPath.add(currentConcept);
-        writeln("-----------\nconcept:");
-        currentConcept.print_concept;
-        writeln("\n-----------\npathList:");
-        pathList.print_pathList;
-        writeln("-----------");
         pathList = query_rec(c, finalConcept, newPath, pathList, isA);
     }
 
