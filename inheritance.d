@@ -38,17 +38,22 @@ void query(Graph G)
         if(pathList.length > 0)
         {
             writeln("\nAll paths:");
-            pathList.print_pathList(G, "\n");
+            pathList.print_pathList;
             
             shortest(pathList, G);
             
             writeln("\nPreferred Path (Inferential Distance):");
             pathList = query_path(parse_input(query), G, true);
-            pathList.print_pathList(G, "\n");
+            pathList.print_pathList;
         }
         else
             writeln("No Paths found");
     }
+}
+
+void inferential()
+{
+    
 }
 
 void shortest(Path[] pathList, Graph G)
@@ -64,7 +69,7 @@ void shortest(Path[] pathList, Graph G)
     foreach(p; pathList)
         if(shortest == p.get_size)
         {
-            p.print_path(G);
+            p.print_path;
             writeln();
         }
 }
@@ -82,48 +87,33 @@ Path[] query_path(Edge query, Graph G, bool infer)
     
     subExists = contain_concept(G.conceptList, subConcept);
     superExists = contain_concept(G.conceptList, superConcept);
-    {
-        if(c.compare_concept(subConcept))
-            subExists = true;
-        if(c.compare_concept(superConcept))
-            superExists = true;
-    }
     
     if(subExists && superExists)
     {
-        if(!infer)
-        {
-            foreach(e; G.edgeList)
+        
+        foreach(e; G.edgeList)                          //iterate over all edges in subconcept
+            if(e.get_sub.compare_concept(subConcept)) 
             {
-                if(e.get_sub.compare_concept(subConcept))
+                if(!infer)
+                {
+                    e.print_edge;
+                    Path path = new Path(e.get_sub);
+                    pathList = query_rec(e.get_super, superConcept, path, pathList, e.get_isA);
+                }
+                
+                if(infer)
                 {
                     Path path = new Path(e.get_sub);
-                    pathList = query_rec(e.get_super, superConcept, path, pathList, true);
+                    pathList ~= query_infer(G, subConcept, superConcept, path, true);
                 }
             }
-        }
-        
-        foreach(c; G.conceptList)
-        {
-            if(c.compare_concept(subConcept))
-            {
-                subConcept = c;
-                break;
-            }
-        }
-        
-        if(infer)
-        {
-            Path path = new Path(subConcept);
-            pathList ~= query_infer(G, subConcept, superConcept, path, true);
-        }
         
         Path[] newPathList;
+        
         foreach(index, p; pathList)
-        {
             if(p.get_tail.get_concept.compare_concept(superConcept))
                 newPathList ~= pathList[index];
-        }
+
         pathList = newPathList;
     }
     return pathList;
@@ -131,6 +121,13 @@ Path[] query_path(Edge query, Graph G, bool infer)
 
 Path[] query_rec(Concept currentConcept, Concept finalConcept, Path path, Path[] pathList, bool isA)
 {
+    writeln("current concept: ");
+    currentConcept.print_concept;
+    writeln("\n");
+    Concept[] adjTrue = currentConcept.get_adjTrue;
+    Concept[] adjFalse = currentConcept.get_adjFalse;
+    Concept[] adj = adjTrue ~ adjFalse;
+    
     if(currentConcept.compare_concept(finalConcept))
     {
         path.add(currentConcept);
@@ -141,28 +138,25 @@ Path[] query_rec(Concept currentConcept, Concept finalConcept, Path path, Path[]
     if(!isA)
         return pathList;
     
-    Concept[] adjTrue = currentConcept.get_adjTrue;
-    Concept[] adjFalse = currentConcept.get_adjFalse;
-    Concept[] adj = adjTrue ~ adjFalse;
-    
+    writeln("adj.length: ", adjTrue.length + adjFalse.length);
     if(adj.length == 0)
-    {
-        pathList ~= path;
         return pathList;
-    }
     
     foreach(c; adj)
     {
-        foreach(negativeConcept; adjFalse)
-        {
-            if(c.compare_concept(negativeConcept))
-                isA = false;
-        }
+        if(adjFalse.contain_concept(c))
+            isA = false;
         
         Path newPath = new Path(path);
         newPath.add(currentConcept);
+        writeln("-----------\nconcept:");
+        currentConcept.print_concept;
+        writeln("\n-----------\npathList:");
+        pathList.print_pathList;
+        writeln("-----------");
         pathList = query_rec(c, finalConcept, newPath, pathList, isA);
     }
+
     return pathList;
 }  
 
@@ -181,7 +175,6 @@ Path query_infer(Graph G, Concept currentConcept, Concept finalConcept, Path pat
         return path;
     
     if(adj.length > 0)
-    {
         while(adj.length > 0)
         {
             int closestIndex = 0;
@@ -208,7 +201,6 @@ Path query_infer(Graph G, Concept currentConcept, Concept finalConcept, Path pat
             else
                 return path;
         }
-    }
     return path;
 }
 
@@ -216,7 +208,7 @@ Concept closest(Graph G, Concept currentConcept, Concept nextA, Concept nextB)
 {
     Edge query = new Edge(currentConcept, nextA, true);
     
-    if(currentConcept.get_adjFalse.contain_concept(nextB))
+    if(currentConcept.get_adjFalse.contain_concept(nextB)) //IS-NOT-A priority
         return nextB;
     
     Path[] pathList = [];
@@ -225,6 +217,7 @@ Concept closest(Graph G, Concept currentConcept, Concept nextA, Concept nextB)
     foreach(p; pathList)
         if(p.get_conceptList[0..$-1].contain_concept(nextB))
             return nextB;
+        
     return nextA;
 }
 
