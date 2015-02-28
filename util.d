@@ -47,7 +47,7 @@ string get_input(string prompt)
 
 bool string_to_bool(string flag)
 {
-    if(flag == "IS-A")
+    if(flag == "IS-A" || flag == "+")
         return true;
     return false;
 }
@@ -83,7 +83,7 @@ void print_edge(Edge edge)
     writeln(edge.get_sub.get_name, " ", bool_to_string(edge.get_isA), " ", edge.get_super.get_name);
 }
 
-void print_path(Path path, Graph G)
+void print_path(Path path)
 {
     Node current = path.get_head;
     
@@ -91,8 +91,13 @@ void print_path(Path path, Graph G)
     {
         if(current.nextNode != path.get_nil)
         {
-            Edge edge = G.get_edge(current.get_concept, current.nextNode.get_concept);
-            write(current.get_concept.get_name, ' ', bool_to_string(edge.get_isA), ' ');
+            Concept currentConcept = current.get_concept;
+            Concept nextConcept = current.nextNode.get_concept;
+            
+            if(currentConcept.adjFalse.contain_concept(nextConcept))
+                write(currentConcept.get_name, " IS-NOT-A ");
+            else
+                write(currentConcept.get_name, " IS-A ");
         }
         else
             write(current.get_concept.get_name);
@@ -109,11 +114,11 @@ void print_graph(Graph G)
     }
 }
 
-void print_pathList(Path[] pathList, Graph G, string stringBreak)
+void print_pathList(Path[] pathList, string stringBreak = "\n")
 {
     foreach(p; pathList)
     {
-        p.print_path(G);
+        p.print_path;
         write(stringBreak);
     }
 }
