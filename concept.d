@@ -1,5 +1,7 @@
 import std.stdio;
 
+import util;
+
 class Concept
 {
     string conceptName;
@@ -24,9 +26,11 @@ class Concept
         bool exists = false;
         
         if(isA)
+        {
             if(!adjTrue.contain_concept(concept))
                 adjTrue ~= concept;
-        else 
+        }
+        else
             if(!adjFalse.contain_concept(concept))
                 adjFalse ~= concept;
     }
