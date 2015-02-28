@@ -14,53 +14,49 @@ class Graph
     {
         bool subExists = false;
         bool superExists = false;
+        bool edgeExists = false;
         
-        Concept subConcept;
-        Concept superConcept;
+        Concept subConcept = edge.get_sub;
+        Concept superConcept = edge.get_super;
         
         foreach(c; this.conceptList)
         {
-            if(edge.get_sub.compare_concept(c))
+            if(subConcept.compare_concept(c) && !subExists)
             {
                 subExists = true;
                 subConcept = c;
             }
             else
-            if(edge.get_super.compare_concept(c))
+            if(superConcept.compare_concept(c) && !superExists)
             {
                 superExists = true;
                 superConcept = c;
             }
         }
+
+        if(!subExists)
+            conceptList ~= subConcept;
         
-        if(subExists)
+        if(!superExists)
+            conceptList ~= superConcept;
+        
+        
+        foreach(e; edgeList)
         {
-            if(superExists)
+            if(e.get_sub == subConcept && e.get_super == superConcept)
             {
-                subConcept.join(superConcept, edge.get_isA);
-                edge = new Edge(subConcept, superConcept, edge.get_isA);
-            }
-            else
-            {
-                subConcept.join(edge.get_super, edge.get_isA);
-                edge = new Edge(subConcept, edge.get_super, edge.get_isA);
-                conceptList ~= edge.get_super;
+                edgeExists = true;
+                writeln("\nEdge already exists!\n");
+                break;
             }
         }
-        else
+        
+        if(!edgeExists)
         {
-            
-            if(superExists)
-                edge = new Edge(edge.get_sub, superConcept, edge.get_isA);
-            else
-            {
-                edge.get_sub.join(edge.get_super, edge.get_isA);
-                edge = new Edge(edge.get_sub, edge.get_super, edge.get_isA);
-                conceptList ~= edge.get_super;
-            }
-            conceptList ~= edge.get_sub;
+            subConcept.join(superConcept, edge.get_isA);
+            edge = new Edge(subConcept, superConcept, edge.get_isA);
+            edgeList ~= edge;
         }
-        edgeList ~= edge;
         
     }
     
