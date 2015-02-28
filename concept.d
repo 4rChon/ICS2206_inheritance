@@ -24,29 +24,11 @@ class Concept
         bool exists = false;
         
         if(isA)
-        {
-            foreach(c; adjTrue)
-            {
-                if(c.compare_concept(concept))
-                {
-                    writeln("Already adjacent!");
-                    exists = true;
-                }
-            }
-            if(!exists) adjTrue ~= concept;
-        }
+            if(!adjTrue.contain_concept(concept))
+                adjTrue ~= concept;
         else 
-        {
-            foreach(c; adjFalse)
-            {
-                if(c.compare_concept(concept))
-                {
-                    writeln("Already adjacent!");
-                    exists = true;
-                }
-            }
-            if(!exists) adjFalse ~= concept;
-        }
+            if(!adjFalse.contain_concept(concept))
+                adjFalse ~= concept;
     }
     
     Concept[] get_adjTrue()
